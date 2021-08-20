@@ -9,6 +9,43 @@ import PromiseKit
 
 extension Web3HttpProvider {
     
+    public static func postRaw(_ request: JSONRPCrequest, providerURL: URL, queue: DispatchQueue = .main, session: URLSession) -> Promise<Data> {
+        let rp = Promise<Data>.pending()
+        var task: URLSessionTask? = nil
+        queue.async {
+            do {
+                let encoder = JSONEncoder()
+                let requestData = try encoder.encode(request)
+                var urlRequest = URLRequest(url: providerURL, cachePolicy: URLRequest.CachePolicy.reloadIgnoringCacheData)
+                urlRequest.httpMethod = "POST"
+                urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
+                urlRequest.httpBody = requestData
+                //                let debugValue = try JSONSerialization.jsonObject(with: requestData, options: JSONSerialization.ReadingOptions(rawValue: 0))
+                //                print(debugValue)
+                //                let debugString = String(data: requestData, encoding: .utf8)
+                //                print(debugString)
+                task = session.dataTask(with: urlRequest){ (data, response, error) in
+                    guard error == nil else {
+                        rp.resolver.reject(error!)
+                        return
+                    }
+                    guard data != nil else {
+                        rp.resolver.reject(Web3Error.nodeError(desc: "Node response is empty"))
+                        return
+                    }
+                    rp.resolver.fulfill(data!)
+                }
+                task?.resume()
+            } catch {
+                rp.resolver.reject(error)
+            }
+        }
+        return rp.promise.ensure(on: queue) {
+            task = nil
+        }
+    }
+    
     static func post(_ request: JSONRPCrequest, providerURL: URL, queue: DispatchQueue = .main, session: URLSession) -> Promise<JSONRPCresponse> {
         let rp = Promise<Data>.pending()
         var task: URLSessionTask? = nil
