@@ -72,14 +72,6 @@ public enum JSONRPCmethod: String, Encodable {
 }
 
 public struct JSONRPCRequestFabric {
-    public static func prepareRequestRaw(_ method: JSONRPCmethod, parameters: [Any]) -> JSONRPCrequest {
-        var request = JSONRPCrequest()
-        request.method = method
-        let pars = JSONRPCparams(params: parameters)
-        request.params = pars
-        return request
-    }
-    
     public static func prepareRequest(_ method: JSONRPCmethod, parameters: [Encodable]) -> JSONRPCrequest {
         var request = JSONRPCrequest()
         request.method = method

@@ -9,7 +9,7 @@ import PromiseKit
 
 extension Web3HttpProvider {
     
-    public static func postRaw(_ request: JSONRPCrequest, providerURL: URL, queue: DispatchQueue = .main, session: URLSession) -> Promise<Data> {
+    public static func postRaw<T: Encodable>(_ request: JSONRPCEncodablerequest<T>, providerURL: URL, queue: DispatchQueue = .main, session: URLSession) -> Promise<Data> {
         let rp = Promise<Data>.pending()
         var task: URLSessionTask? = nil
         queue.async {
@@ -21,10 +21,6 @@ extension Web3HttpProvider {
                 urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
                 urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
                 urlRequest.httpBody = requestData
-                //                let debugValue = try JSONSerialization.jsonObject(with: requestData, options: JSONSerialization.ReadingOptions(rawValue: 0))
-                //                print(debugValue)
-                //                let debugString = String(data: requestData, encoding: .utf8)
-                //                print(debugString)
                 task = session.dataTask(with: urlRequest){ (data, response, error) in
                     guard error == nil else {
                         rp.resolver.reject(error!)
