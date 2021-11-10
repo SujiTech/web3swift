@@ -22,7 +22,7 @@ public struct EthereumTransaction: CustomStringConvertible {
     // TODO - split EthereumTransaction to two classes: with optional and required value property, depends on type of transaction
     public var value: BigUInt?
     public var data: Data
-    public var type: BigUInt
+    public var type: BigUInt = BigUInt(2)
     public var v: BigUInt = BigUInt(1)
     public var r: BigUInt = BigUInt(0)
     public var s: BigUInt = BigUInt(0)
@@ -82,7 +82,6 @@ public struct EthereumTransaction: CustomStringConvertible {
         self.to = to
         self.value = value
         self.data = data
-        self.type = BigUInt(2)
         self.v = v
         self.r = r
         self.s = s
