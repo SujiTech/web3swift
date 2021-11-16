@@ -14,15 +14,12 @@ public struct EthereumTransaction: CustomStringConvertible {
     public var nonce: BigUInt
     public var gasPrice: BigUInt = BigUInt(0)
     public var gasLimit: BigUInt = BigUInt(0)
-    public var maxFeePerGas: BigUInt = BigUInt(0)
-    public var maxPriorityFeePerGas: BigUInt = BigUInt(0)
     // The destination address of the message, left undefined for a contract-creation transaction.
     public var to: EthereumAddress
     // (optional) The value transferred for the transaction in wei, also the endowment if it’s a contract-creation transaction.
     // TODO - split EthereumTransaction to two classes: with optional and required value property, depends on type of transaction
     public var value: BigUInt?
     public var data: Data
-    public var type: BigUInt = BigUInt(2)
     public var v: BigUInt = BigUInt(1)
     public var r: BigUInt = BigUInt(0)
     public var s: BigUInt = BigUInt(0)
@@ -71,20 +68,6 @@ public struct EthereumTransaction: CustomStringConvertible {
         self.value = value
         self.data = data
         self.to = to
-    }
-    
-    
-    public init (nonce: BigUInt, maxFeePerGas: BigUInt, maxPriorityFeePerGas: BigUInt, gasLimit: BigUInt, to: EthereumAddress, value: BigUInt, data: Data, v: BigUInt, r: BigUInt, s: BigUInt) {
-        self.nonce = nonce
-        self.maxFeePerGas = maxFeePerGas
-        self.maxPriorityFeePerGas = maxPriorityFeePerGas
-        self.gasLimit = gasLimit
-        self.to = to
-        self.value = value
-        self.data = data
-        self.v = v
-        self.r = r
-        self.s = s
     }
     
     public init (nonce: BigUInt, gasPrice: BigUInt, gasLimit: BigUInt, to: EthereumAddress, value: BigUInt, data: Data, v: BigUInt, r: BigUInt, s: BigUInt) {
@@ -179,7 +162,7 @@ public struct EthereumTransaction: CustomStringConvertible {
         }
     }
     
-    public func encode(forSignature:Bool = false, chainID: BigUInt? = nil , isEip1559:Bool = false) -> Data? {
+    public func encode(forSignature:Bool = false, chainID: BigUInt? = nil) -> Data? {
         if (forSignature) {
             if chainID != nil  {
                 let fields = [self.nonce, self.gasPrice, self.gasLimit, self.to.addressData, self.value!, self.data, chainID!, BigUInt(0), BigUInt(0)] as [AnyObject]
@@ -193,14 +176,8 @@ public struct EthereumTransaction: CustomStringConvertible {
                 return RLP.encode(fields)
             }
         } else {
-            
-            if (isEip1559){
-                let fields = [self.nonce, self.maxFeePerGas, self.maxPriorityFeePerGas ,self.gasLimit, self.to.addressData, self.value!, self.data, self.type ,self.v, self.r, self.s] as [AnyObject]
-                return RLP.encode(fields)
-            } else {
                 let fields = [self.nonce, self.gasPrice, self.gasLimit, self.to.addressData, self.value!, self.data, self.v, self.r, self.s] as [AnyObject]
                 return RLP.encode(fields)
-            }
         }
     }
     
@@ -298,17 +275,28 @@ public struct EthereumTransaction: CustomStringConvertible {
         return request
     }
     
-    static func createRawTransaction(transaction: EthereumTransaction) -> JSONRPCrequest? {
-        guard transaction.sender != nil else {return nil}
-        guard let encodedData = transaction.encode() else {return nil}
-        let hex = encodedData.toHexString().addHexPrefix().lowercased()
-        var request = JSONRPCrequest()
-        request.method = JSONRPCmethod.sendRawTransaction
-        let params = [hex] as Array<Encodable>
-        let pars = JSONRPCparams(params: params)
-        request.params = pars
-        if !request.isValid {return nil}
-        return request
+    static func createRawTransaction(transaction: EthereumTransaction, transactionEncodeData: Data? = nil) -> JSONRPCrequest? {
+        if transactionEncodeData {
+            let hex = transactionEncodeData.toHexString().addHexPrefix().lowercased()
+            var request = JSONRPCrequest()
+            request.method = JSONRPCmethod.sendRawTransaction
+            let params = [hex] as Array<Encodable>
+            let pars = JSONRPCparams(params: params)
+            request.params = pars
+            if !request.isValid {return nil}
+            return request
+        } else {
+            guard transaction.sender != nil else {return nil}
+            guard let encodedData = transaction.encode() else {return nil}
+            let hex = encodedData.toHexString().addHexPrefix().lowercased()
+            var request = JSONRPCrequest()
+            request.method = JSONRPCmethod.sendRawTransaction
+            let params = [hex] as Array<Encodable>
+            let pars = JSONRPCparams(params: params)
+            request.params = pars
+            if !request.isValid {return nil}
+            return request
+        }
     }
 }
 

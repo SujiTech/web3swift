@@ -110,9 +110,6 @@ extension EthereumTransaction:Decodable {
         case r
         case s
         case value
-        case maxFeePerGas
-        case maxPriorityFeePerGas
-        case type
     }
     
     public init(from decoder: Decoder) throws {
@@ -133,15 +130,6 @@ extension EthereumTransaction:Decodable {
         
         guard let nonce = try decodeHexToBigUInt(container, key: .nonce) else {throw Web3Error.dataError}
         self.nonce = nonce
-        
-        guard let type = try decodeHexToBigUInt(container, key: .type) else {throw Web3Error.dataError}
-        self.type = type
-        
-        guard let maxFeePerGas = try decodeHexToBigUInt(container, key: .maxFeePerGas) else {throw Web3Error.dataError}
-        self.maxFeePerGas = maxFeePerGas
-        
-        guard let maxPriorityFeePerGas = try decodeHexToBigUInt(container, key: .maxPriorityFeePerGas) else {throw Web3Error.dataError}
-        self.maxPriorityFeePerGas = maxPriorityFeePerGas
         
         guard let v = try decodeHexToBigUInt(container, key: .v) else {throw Web3Error.dataError}
         self.v = v

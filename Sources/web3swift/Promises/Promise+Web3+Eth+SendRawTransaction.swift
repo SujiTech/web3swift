@@ -17,12 +17,19 @@ extension web3.Eth {
         return sendRawTransactionPromise(deserializedTX)
     }
 
-    public func sendRawTransactionPromise(_ transaction: EthereumTransaction) -> Promise<TransactionSendingResult>{
+    public func sendRawTransactionPromise(_ transaction: EthereumTransaction ,_  transactionEncodeData: Data? = nil) -> Promise<TransactionSendingResult>{
 //        print(transaction)
         let queue = web3.requestDispatcher.queue
         do {
-            guard let request = EthereumTransaction.createRawTransaction(transaction: transaction) else {
-                throw Web3Error.processingError(desc: "Transaction is invalid")
+            
+            if transactionEncodeData {
+                    guard let request = EthereumTransaction.createRawTransaction(transaction: transaction ,transactionEncodeData: transactionEncodeData) else {
+                        throw Web3Error.processingError(desc: "Transaction is invalid")
+                } else {
+                    guard let request = EthereumTransaction.createRawTransaction(transaction: transaction) else {
+                        throw Web3Error.processingError(desc: "Transaction is invalid")
+                }
+
             }
             let rp = web3.dispatch(request)
             return rp.map(on: queue ) { response in
