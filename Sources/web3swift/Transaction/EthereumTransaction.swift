@@ -276,8 +276,8 @@ public struct EthereumTransaction: CustomStringConvertible {
     }
     
     static func createRawTransaction(transaction: EthereumTransaction, transactionEncodeData: Data? = nil) -> JSONRPCrequest? {
-        if transactionEncodeData {
-            let hex = transactionEncodeData.toHexString().addHexPrefix().lowercased()
+        if transactionEncodeData != nil {
+            let hex = transactionEncodeData!.toHexString().addHexPrefix().lowercased()
             var request = JSONRPCrequest()
             request.method = JSONRPCmethod.sendRawTransaction
             let params = [hex] as Array<Encodable>
